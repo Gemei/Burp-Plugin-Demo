@@ -65,7 +65,7 @@ python3 main.py
 
 - [Official Montoya API Documentation](https://portswigger.net/burp/extender/api/montoya/)
 - [Burp Suite Extension Development Guide](https://portswigger.net/burp/extender/writing-your-first-burp-extension)
-- Original Guide by Hosam Gemei
+- [Original Guide by Hosam Gemei](https://medium.com/@hosam.gemeai/a-guide-to-build-burp-suite-extensions-using-montoya-api-java-a8256a169bee)
 
 ## License
 
