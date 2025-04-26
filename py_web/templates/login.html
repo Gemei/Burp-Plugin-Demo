@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+<head>
+<title>Login</title>
+<h2>Login</h2>
+<script>
+const encryptionKey = "{{ encryption_key }}";
+
+function base64ToArrayBuffer(base64) {
+    const binaryString = window.atob(base64.replace(/-/g, "+").replace(/_/g, "/"));
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
+async function encryptData(data) {
+    const enc = new TextEncoder();
+    const encodedData = enc.encode(JSON.stringify(data));
+    const rawKey = base64ToArrayBuffer(encryptionKey);
+    const key = await crypto.subtle.importKey(
+        "raw",
+        rawKey,
+        { name: "AES-GCM" },
+        false,
+        ["encrypt"]
+    );
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ciphertext = await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv: iv },
+        key,
+        encodedData
+    );
+    return {
+        iv: Array.from(iv),
+        ciphertext: Array.from(new Uint8Array(ciphertext))
+    };
+}
+
+async function login(event) {
+    event.preventDefault();
+    const username = document.getElementsByName('username')[0].value;
+    const password = document.getElementsByName('password')[0].value;
+
+    const encrypted = await encryptData({ username, password });
+
+    const encryptedJson = JSON.stringify(encrypted);
+    const encryptedBase64 = btoa(unescape(encodeURIComponent(encryptedJson)));
+
+    const response = await fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enc_payload: encryptedBase64 })
+    });
+
+    const data = await response.text();
+    alert(data);
+}
+</script>
+</head>
+<body>
+<form onsubmit="login(event)">
+  Username: <input type="text" name="username"><br>
+  Password: <input type="password" name="password"><br>
+  <input type="submit" value="Login">
+</form>
+</body>
+</html>
